@@ -1,8 +1,16 @@
 import {TasksStateType} from '../../app/App';
-import {AddTodolistActionType, RemoveTodolistActionType, SetTodolistsActionType} from './todolists-reducer';
+import {
+    AddTodolistActionType,
+    changeTodolistEntityStatusAC,
+    RemoveTodolistActionType,
+    SetTodolistsActionType
+} from './todolists-reducer';
 import {TaskStatuses, TaskType, todolistsAPI, UpdateTaskModelType} from '../../api/todolists-api'
 import {Dispatch} from "redux";
 import {AppRootStateType, AppThunk} from "../../app/store";
+import {RequestStatusType, setAppErrorAC, setAppStatusAC} from "../../app/app-reducer";
+import {AxiosError} from "axios";
+import {handleServerAppError, handleServerNetworkError} from "../../utils/error-utils";
 
 const initialState: TasksStateType = {
     /*"todolistId1": [
@@ -78,6 +86,14 @@ export const tasksReducer = (state: TasksStateType = initialState, action: Tasks
             delete copyState[action.id];
             return copyState;
         }
+        /*case "CHANGE-TASK-ENTITY-STATUS": {
+            let todolistTasks = state[action.todolistId];
+            // найдём нужную таску:
+            let newTasksArray = todolistTasks
+                .map(t => t.id === action.taskId ? {...t, title: action.title} : t);
+            state[action.todolistId] = newTasksArray;
+            return ({...state});
+        }*/
         default:
             return state;
     }
@@ -99,35 +115,60 @@ export const changeTaskTitleAC = (taskId: string, title: string, todolistId: str
 export const setTasksAC = (tasks: Array<TaskType>, todolistId: string) => {
     return {type: 'SET-TASKS', tasks, todolistId} as const
 }
+/*export const changeTaskEntityStatusAC = (todolistId: string, taskId: string,
+                                         entityStatus: RequestStatusType)=> {
+    return {type: 'CHANGE-TASK-ENTITY-STATUS', todolistId, taskId, entityStatus} as const
+}*/
 
 //THUNK
-export const fetchTasksTC = (todolistId: string):AppThunk => {
+export const fetchTasksTC = (todolistId: string): AppThunk => {
     return (dispatch) => {
+        dispatch(setAppStatusAC("loading"))
         todolistsAPI.getTasks(todolistId)
             .then((res) => {
                 let tasks = res.data.items
                 dispatch(setTasksAC(tasks, todolistId))
+                dispatch(setAppStatusAC("succeeded"))
+            })
+            .catch((error:AxiosError)=>{
+                handleServerNetworkError(error,dispatch)
             })
     }
 }
 export const removeTaskTC = (taskId: string, todosId: string): AppThunk => {
     return (dispatch) => {
+        dispatch(setAppStatusAC("loading"))
+        /*dispatch(changeTodolistEntityStatusAC(todosId, "loading"))*/
         todolistsAPI.deleteTask(todosId, taskId)
             .then(() => {
                 dispatch(removeTaskAC(taskId, todosId))
+                dispatch(setAppStatusAC("succeeded"))
+            })
+            .catch((error:AxiosError)=>{
+                handleServerNetworkError(error,dispatch)
             })
     }
 }
 export const addTaskTC = (todolistId: string, taskTitle: string): AppThunk => {
     return (dispatch) => {
+        dispatch(setAppStatusAC("loading"))
         todolistsAPI.createTask(todolistId, taskTitle).then((res) => {
-            const taskTitle = res.data.data.item
-            dispatch(addTaskAC(taskTitle))
+                if (res.data.resultCode === 0) {
+                    const taskTitle = res.data.data.item
+                    dispatch(addTaskAC(taskTitle))
+                    dispatch(setAppStatusAC("succeeded"))
+                } else {
+                    handleServerAppError(res.data, dispatch)
+                }
+            }
+        ).catch((error: AxiosError)=>{
+            handleServerNetworkError(error,dispatch)
         })
     }
 }
 export const updateTaskStatusTC = (taskId: string, todolistId: string, status: TaskStatuses): AppThunk => {
     return (dispatch, getState) => {
+
 
         const findTask = getState().tasks[todolistId].find((t) => {
             return t.id === taskId
@@ -141,14 +182,19 @@ export const updateTaskStatusTC = (taskId: string, todolistId: string, status: T
                 priority: findTask.priority,
                 startDate: findTask.startDate
             }
+            dispatch(setAppStatusAC("loading"))
             todolistsAPI.updateTask(todolistId, taskId, model).then((res) => {
                 const updatedStatusTask = res.data.data.item.status
                 dispatch(changeTaskStatusAC(taskId, updatedStatusTask, todolistId))
+                dispatch(setAppStatusAC("succeeded"))
             })
+                .catch((error: AxiosError)=>{
+                    handleServerNetworkError(error,dispatch)
+                })
         }
     }
 }
-export const changeTaskTitleTC = (todolistId: string, taskId: string, title: string):AppThunk  => {
+export const changeTaskTitleTC = (todolistId: string, taskId: string, title: string): AppThunk => {
     return (dispatch, getState) => {
         const newTask = getState().tasks[todolistId].find((t) => {
             return t.id === taskId
@@ -162,10 +208,15 @@ export const changeTaskTitleTC = (todolistId: string, taskId: string, title: str
                 priority: newTask.priority,
                 startDate: newTask.startDate
             }
+            dispatch(setAppStatusAC("loading"))
             todolistsAPI.updateTask(todolistId, taskId, model).then((res) => {
                 const title = res.data.data.item.title
                 dispatch(changeTaskTitleAC(taskId, title, todolistId))
+                dispatch(setAppStatusAC("succeeded"))
             })
+                .catch((error: AxiosError)=>{
+                    handleServerNetworkError(error,dispatch)
+                })
         }
     }
 }
@@ -177,6 +228,8 @@ export type AddTaskActionType = ReturnType<typeof addTaskAC>
 export type ChangeTaskTitleActionType = ReturnType<typeof changeTaskTitleAC>
 export type ChangeTaskStatusActionType = ReturnType<typeof changeTaskStatusAC>
 export type SetTaskActionType = ReturnType<typeof setTasksAC>
+/*export type ChangeTaskEntityStatusActionType = ReturnType<typeof changeTaskEntityStatusAC>*/
+
 
 
 export type TasksActionsType =
@@ -188,5 +241,5 @@ export type TasksActionsType =
     | RemoveTodolistActionType
     | SetTodolistsActionType
     | SetTaskActionType
-
+   /* | ChangeTaskEntityStatusActionType*/
 //все типы экшенов перенес без переменных при помощи ReturnType
