@@ -1,7 +1,5 @@
 import {AppActionType} from "./store";
 
-
-
 const initialState = {
     status: 'succeeded' as RequestStatusType,
     error: null as ErrorSnacbarType
@@ -12,18 +10,18 @@ export const appReducer = (state: InitialStateType = initialState, action: AppAc
         case 'APP/SET-STATUS':
             return {...state, status: action.status}
         case 'APP/SET-ERROR':
-            return {...state,error: action.error}
+            return {...state, error: action.error}
         default:
             return state
     }
 }
 
-export const setAppStatusAC = (status:RequestStatusType) => {
-    return {type: 'APP/SET-STATUS', status } as const
+export const setAppStatusAC = (status: RequestStatusType) => {
+    return {type: 'APP/SET-STATUS', status} as const
 }
 
-export const setAppErrorAC = (error:ErrorSnacbarType) => {
-    return {type: 'APP/SET-ERROR', error } as const
+export const setAppErrorAC = (error: ErrorSnacbarType) => {
+    return {type: 'APP/SET-ERROR', error} as const
 }
 
 

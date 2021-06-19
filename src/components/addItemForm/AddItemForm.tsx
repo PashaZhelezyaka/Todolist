@@ -1,5 +1,5 @@
 import React, {ChangeEvent, KeyboardEvent, useState} from 'react';
-import {Box, Button, FormControl, IconButton, TextField} from '@material-ui/core';
+import {IconButton, TextField} from '@material-ui/core';
 import {AddBox} from '@material-ui/icons';
 import {RequestStatusType} from "../../app/app-reducer";
 
@@ -8,7 +8,7 @@ type AddItemFormPropsType = {
     entityStatus?: RequestStatusType
 }
 
-export const AddItemForm = React.memo(function(props: AddItemFormPropsType) {
+export const AddItemForm = React.memo(function (props: AddItemFormPropsType) {
     console.log("AddItemForm called")
 
     let [title, setTitle] = useState("")
@@ -47,7 +47,7 @@ export const AddItemForm = React.memo(function(props: AddItemFormPropsType) {
                    disabled={props.entityStatus === 'loading'}
         />
         <IconButton color="primary" onClick={addItem} disabled={props.entityStatus === 'loading'}>
-            <AddBox />
+            <AddBox/>
         </IconButton>
     </div>
 })

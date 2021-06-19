@@ -65,7 +65,7 @@ export function TodolistsList() {
     return (
         <>
             <Grid container style={{padding: "20px"}}>
-                <AddItemForm addItem={addTodolist} />
+                <AddItemForm addItem={addTodolist}/>
             </Grid>
             <Grid container spacing={3}>
                 {
@@ -77,7 +77,7 @@ export function TodolistsList() {
                                 <Todolist
                                     id={tl.id}
                                     title={tl.title}
-                                    entityStatus = {tl.entityStatus}
+                                    entityStatus={tl.entityStatus}
                                     tasks={allTodolistTasks}
                                     removeTask={removeTask}
                                     changeFilter={changeFilter}
