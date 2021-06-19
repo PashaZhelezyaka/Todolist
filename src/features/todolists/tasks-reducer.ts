@@ -86,14 +86,14 @@ export const tasksReducer = (state: TasksStateType = initialState, action: Tasks
             delete copyState[action.id];
             return copyState;
         }
-        /*case "CHANGE-TASK-ENTITY-STATUS": {
+        case "CHANGE-TASK-ENTITY-STATUS": {
             let todolistTasks = state[action.todolistId];
             // найдём нужную таску:
             let newTasksArray = todolistTasks
-                .map(t => t.id === action.taskId ? {...t, title: action.title} : t);
+                .map(t => t.id === action.taskId ? {...t, entityStatus: action.entityStatus} : t);
             state[action.todolistId] = newTasksArray;
             return ({...state});
-        }*/
+        }
         default:
             return state;
     }
@@ -115,10 +115,10 @@ export const changeTaskTitleAC = (taskId: string, title: string, todolistId: str
 export const setTasksAC = (tasks: Array<TaskType>, todolistId: string) => {
     return {type: 'SET-TASKS', tasks, todolistId} as const
 }
-/*export const changeTaskEntityStatusAC = (todolistId: string, taskId: string,
+export const changeTaskEntityStatusAC = (todolistId: string, taskId: string,
                                          entityStatus: RequestStatusType)=> {
     return {type: 'CHANGE-TASK-ENTITY-STATUS', todolistId, taskId, entityStatus} as const
-}*/
+}
 
 //THUNK
 export const fetchTasksTC = (todolistId: string): AppThunk => {
@@ -138,7 +138,7 @@ export const fetchTasksTC = (todolistId: string): AppThunk => {
 export const removeTaskTC = (taskId: string, todosId: string): AppThunk => {
     return (dispatch) => {
         dispatch(setAppStatusAC("loading"))
-        /*dispatch(changeTodolistEntityStatusAC(todosId, "loading"))*/
+        dispatch(changeTaskEntityStatusAC(todosId,taskId, "loading"))
         todolistsAPI.deleteTask(todosId, taskId)
             .then(() => {
                 dispatch(removeTaskAC(taskId, todosId))
@@ -228,7 +228,7 @@ export type AddTaskActionType = ReturnType<typeof addTaskAC>
 export type ChangeTaskTitleActionType = ReturnType<typeof changeTaskTitleAC>
 export type ChangeTaskStatusActionType = ReturnType<typeof changeTaskStatusAC>
 export type SetTaskActionType = ReturnType<typeof setTasksAC>
-/*export type ChangeTaskEntityStatusActionType = ReturnType<typeof changeTaskEntityStatusAC>*/
+export type ChangeTaskEntityStatusActionType = ReturnType<typeof changeTaskEntityStatusAC>
 
 
 
@@ -241,5 +241,5 @@ export type TasksActionsType =
     | RemoveTodolistActionType
     | SetTodolistsActionType
     | SetTaskActionType
-   /* | ChangeTaskEntityStatusActionType*/
+    | ChangeTaskEntityStatusActionType
 //все типы экшенов перенес без переменных при помощи ReturnType
