@@ -16,15 +16,20 @@ import {Grid, Paper} from "@material-ui/core";
 import {AddItemForm} from "../../components/addItemForm/AddItemForm";
 import {Todolist} from "./todolist/Todolist";
 import {TasksStateType} from "../../app/App";
+import {Redirect} from "react-router-dom";
 
-export function TodolistsList() {
+export const TodolistsList: React.FC<PropsType> = ({demo = false}) => {
     useEffect(() => {
+        if (demo || !isLoggedIn) {
+            return
+        }
         dispatch(fetchTodolistsTC())
     }, [])
 
     const todolists = useSelector<AppRootStateType, Array<TodolistDomainType>>(state => state.todolists)
     const tasks = useSelector<AppRootStateType, TasksStateType>(state => state.tasks)
     const dispatch = useDispatch();
+    const isLoggedIn = useSelector<AppRootStateType, boolean>(state => state.auth.isLoggedIn)
 
     const removeTask = useCallback(function (id: string, todolistId: string) {
         dispatch(removeTaskTC(id, todolistId))
@@ -62,6 +67,12 @@ export function TodolistsList() {
     const addTodolist = useCallback((title: string) => {
         dispatch(addTodolistTC(title));
     }, [dispatch]);
+
+    // если незареганы (false) переходит в логин, ставим редирект после всех хуков
+    if (!isLoggedIn) {
+        return <Redirect to={'/login'}/>
+    }
+
     return (
         <>
             <Grid container style={{padding: "20px"}}>
@@ -87,6 +98,7 @@ export function TodolistsList() {
                                     removeTodolist={removeTodolist}
                                     changeTaskTitle={changeTaskTitle}
                                     changeTodolistTitle={changeTodolistTitle}
+                                    demo={demo}
                                 />
                             </Paper>
                         </Grid>
@@ -95,4 +107,8 @@ export function TodolistsList() {
             </Grid>
         </>
     )
+}
+
+type PropsType = {
+    demo?: boolean
 }

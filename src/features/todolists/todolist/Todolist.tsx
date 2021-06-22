@@ -11,11 +11,14 @@ import {useDispatch} from "react-redux";
 import {RequestStatusType} from "../../../app/app-reducer";
 
 
-export const Todolist = React.memo(function (props: PropsType) {
+export const Todolist = React.memo(function ({demo = false, ...props}: PropsType) {
 
     const dispatch = useDispatch();
 
     useEffect(() => {
+        if (demo) {
+            return
+        }
         dispatch(fetchTasksTC(props.id))
     }, [])
 
@@ -48,7 +51,6 @@ export const Todolist = React.memo(function (props: PropsType) {
     }
 
     return <div>
-
         <h3><EditableSpan value={props.title} onChange={changeTodolistTitle}/>
             <IconButton onClick={removeTodolist} disabled={props.entityStatus === 'loading'}>
                 <Delete/>
@@ -97,6 +99,7 @@ type PropsType = {
     removeTodolist: (id: string) => void
     changeTodolistTitle: (id: string, newTitle: string) => void
     filter: FilterValuesType
+    demo?: boolean
 
 }
 
